@@ -1,45 +1,42 @@
-import React, { useEffect, useState } from 'react';
+
+import React from 'react';
 import { Icon } from './Icon';
 
 interface PromptHistoryModalProps {
+  isOpen: boolean;
   onClose: () => void;
+  history: string[];
   onSelectPrompt: (prompt: string) => void;
   onNewChat: () => void;
+  onClearHistory: () => void;
 }
 
-export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({ onClose, onSelectPrompt, onNewChat }) => {
-  const [history, setHistory] = useState<string[]>([]);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('prompt_history');
-      if (saved) {
-        setHistory(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error("Failed to load history", e);
-    }
-  }, []);
-
-  const clearHistory = () => {
-    localStorage.removeItem('prompt_history');
-    setHistory([]);
-  };
+export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  history, 
+  onSelectPrompt, 
+  onNewChat,
+  onClearHistory
+}) => {
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex justify-start" 
-      role="dialog" 
-      aria-modal="true"
-    >
-      {/* Backdrop */}
+    <>
+      {/* Mobile Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-fade-in"
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 md:hidden ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
         onClick={onClose}
+        aria-hidden="true"
       ></div>
 
-      {/* Sidebar Panel - Styled like ChatGPT */}
-      <div className="relative w-[260px] sm:w-[300px] h-full bg-[#171717] text-[#ECECEC] flex flex-col animate-slide-in-left shadow-2xl">
+      {/* Sidebar Panel */}
+      <div 
+        className={`fixed top-0 bottom-0 left-0 z-50 w-[260px] bg-[#171717] text-[#ECECEC] flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         
         {/* Top Section: New Chat & Close */}
         <div className="p-3 flex items-center gap-2">
@@ -55,6 +52,7 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({ onClose,
              onClick={onClose}
              className="p-3 border border-transparent hover:bg-[#2A2B32] text-gray-400 hover:text-white rounded-md transition-colors"
              aria-label="Close sidebar"
+             title="Close Sidebar"
            >
              <Icon icon="sidebar" className="w-5 h-5" />
            </button>
@@ -73,10 +71,7 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({ onClose,
                   history.map((item, index) => (
                     <button
                       key={index}
-                      onClick={() => {
-                        onSelectPrompt(item);
-                        onClose();
-                      }}
+                      onClick={() => onSelectPrompt(item)}
                       className="group flex items-center gap-3 w-full px-3 py-3 text-sm rounded-lg hover:bg-[#2A2B32] transition-colors duration-200 overflow-hidden text-left relative"
                     >
                       <Icon icon="message" className="w-4 h-4 text-gray-400 group-hover:text-white flex-shrink-0" />
@@ -90,11 +85,11 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({ onClose,
            
            {history.length > 0 && (
               <button
-                onClick={clearHistory}
+                onClick={onClearHistory}
                 className="mt-4 flex items-center gap-3 w-full px-3 py-3 text-sm text-gray-400 hover:text-white hover:bg-[#2A2B32] rounded-lg transition-colors"
               >
                 <Icon icon="trash" className="w-4 h-4" />
-                <span>Clear conversations</span>
+                <span>Clear history</span>
               </button>
            )}
         </div>
@@ -113,6 +108,6 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({ onClose,
         </div>
 
       </div>
-    </div>
+    </>
   );
 };

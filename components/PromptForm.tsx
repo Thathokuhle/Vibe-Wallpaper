@@ -10,10 +10,20 @@ interface PromptFormProps {
   setAspectRatio: (aspectRatio: AspectRatio) => void;
   onSubmit: (prompt: string, aspectRatio: AspectRatio) => void;
   isLoading: boolean;
-  onOpenHistory: () => void;
+  onToggleSidebar: () => void;
+  isSidebarOpen: boolean;
 }
 
-export const PromptForm: React.FC<PromptFormProps> = ({ prompt, setPrompt, aspectRatio, setAspectRatio, onSubmit, isLoading, onOpenHistory }) => {
+export const PromptForm: React.FC<PromptFormProps> = ({ 
+  prompt, 
+  setPrompt, 
+  aspectRatio, 
+  setAspectRatio, 
+  onSubmit, 
+  isLoading, 
+  onToggleSidebar,
+  isSidebarOpen 
+}) => {
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +31,9 @@ export const PromptForm: React.FC<PromptFormProps> = ({ prompt, setPrompt, aspec
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-gray-900/80 backdrop-blur-lg border-t border-gray-700 p-4">
+    <div 
+      className={`absolute bottom-0 right-0 bg-gray-900/80 backdrop-blur-lg border-t border-gray-700 p-4 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'left-0 md:left-[260px]' : 'left-0'}`}
+    >
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-grow w-full">
             <textarea
@@ -43,10 +55,9 @@ export const PromptForm: React.FC<PromptFormProps> = ({ prompt, setPrompt, aspec
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
             type="button"
-            onClick={onOpenHistory}
-            disabled={isLoading}
-            className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-gray-800 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
-            title="History"
+            onClick={onToggleSidebar}
+            className={`flex-shrink-0 w-12 h-12 flex items-center justify-center bg-gray-800 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${isSidebarOpen ? 'hidden md:hidden' : ''}`}
+            title="Show History"
           >
             <Icon icon="history" className="w-5 h-5" />
           </button>
