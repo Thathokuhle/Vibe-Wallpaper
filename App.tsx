@@ -97,7 +97,7 @@ const App: React.FC = () => {
 
   const InitialState = () => (
     <div className="flex flex-col items-center justify-center text-center text-gray-400 p-8 max-w-2xl mx-auto mt-20">
-      <div className="w-16 h-16 bg-gray-800/50 backdrop-blur-md rounded-full flex items-center justify-center mb-6 border border-gray-700">
+      <div className="w-16 h-16 bg-gray-800/50 backdrop-blur-md rounded-full flex items-center justify-center mb-6 border border-[#318ba2]/40">
           <Icon icon="sparkles" className="w-8 h-8 text-[#318ba2]" />
       </div>
       <h2 className="text-2xl font-bold text-white mb-2 text-shadow-sm">VibeWallpapers AI</h2>
@@ -140,7 +140,7 @@ const App: React.FC = () => {
               )}
             </div>
             
-            <span className={`text-gray-300 font-medium text-sm tracking-wider opacity-80 ml-4 pointer-events-auto drop-shadow-md ${isSidebarOpen ? 'hidden md:inline-block' : ''}`}>
+            <span className={`text-[#318ba2] font-medium text-sm tracking-wider opacity-90 ml-4 pointer-events-auto drop-shadow-md ${isSidebarOpen ? 'hidden md:inline-block' : ''}`}>
               Phumlanitech AI
             </span>
         </div>

@@ -32,7 +32,7 @@ export const PromptForm: React.FC<PromptFormProps> = ({
 
   return (
     <div 
-      className="absolute bottom-0 left-0 right-0 z-20 bg-gray-900/80 backdrop-blur-lg border-t border-gray-700 p-4 transition-all duration-300 ease-in-out"
+      className="absolute bottom-0 left-0 right-0 z-20 bg-gray-900/80 backdrop-blur-lg border-t border-[#318ba2]/30 p-4 transition-all duration-300 ease-in-out"
     >
       <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-grow w-full">

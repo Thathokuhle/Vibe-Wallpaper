@@ -41,14 +41,14 @@ export const FullScreenView: React.FC<FullScreenViewProps> = ({ image, onClose, 
           <a
             href={downloadUrl}
             download={`VibeWallpaper-${Date.now()}.jpg`}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
+            className="flex items-center gap-2 px-6 py-3 bg-[#318ba2] text-white font-semibold rounded-lg hover:bg-[#2a7a8f] transition-colors shadow-lg"
           >
             <Icon icon="download" className="w-5 h-5" />
             <span>Download</span>
           </a>
           <button
             onClick={onRemix}
-            className="flex items-center gap-2 px-6 py-3 bg-[#318ba2] text-white font-semibold rounded-lg hover:bg-[#2a7a8f] transition-colors shadow-lg"
+            className="flex items-center gap-2 px-6 py-3 bg-[#266776] text-white font-semibold rounded-lg hover:bg-[#1f5a67] transition-colors shadow-lg"
           >
             <Icon icon="remix" className="w-5 h-5" />
             <span>Remix</span>
