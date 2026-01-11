@@ -30,6 +30,15 @@ Create `.env.local` in the project root:
 GEMINI_API_KEY=your_api_key_here
 ```
 
+If you want auth + cloud prompt history, also set:
+
+```bash
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor to create the `prompt_history` table and policies.
+
 ### Install and run
 
 ```bash
@@ -63,3 +72,4 @@ The app runs at http://localhost:3000.
 
 - The API key is injected into the client build via Vite defines. For production, route requests through a server to keep keys private.
 - Prompt history is stored in the browser and can be cleared from the sidebar.
+- When signed in, prompt history is stored in Supabase and synced automatically.

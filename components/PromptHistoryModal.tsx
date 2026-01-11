@@ -11,6 +11,10 @@ interface PromptHistoryModalProps {
   onClearHistory: () => void;
   isDark: boolean;
   onToggleTheme: () => void;
+  userEmail?: string | null;
+  isAuthenticated: boolean;
+  onOpenAuth: () => void;
+  onSignOut: () => void;
 }
 
 export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({ 
@@ -21,7 +25,11 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
   onNewChat,
   onClearHistory,
   isDark,
-  onToggleTheme
+  onToggleTheme,
+  userEmail,
+  isAuthenticated,
+  onOpenAuth,
+  onSignOut
 }) => {
 
   return (
@@ -100,13 +108,17 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
 
         {/* Footer: User Profile */}
         <div className="p-3 border-t border-slate-200/70 dark:border-white/10">
-          <button className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-[#2A2B32] transition-colors duration-200 text-left">
+          <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-[#2A2B32] transition-colors duration-200">
             <div className="w-8 h-8 rounded-full bg-[#318ba2] flex items-center justify-center text-white text-xs font-bold">
                <Icon icon="user" className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-               <div className="text-sm font-medium text-slate-800 dark:text-white truncate">Guest User</div>
-               <div className="text-xs text-slate-500 dark:text-gray-400 truncate">Sign in to save</div>
+               <div className="text-sm font-medium text-slate-800 dark:text-white truncate">
+                 {userEmail || 'Guest User'}
+               </div>
+               <div className="text-xs text-slate-500 dark:text-gray-400 truncate">
+                 {isAuthenticated ? 'Signed in' : 'Sign in to save'}
+               </div>
             </div>
             <button
               type="button"
@@ -117,6 +129,12 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
             >
               <Icon icon={isDark ? 'sun' : 'moon'} className="w-4 h-4" />
             </button>
+          </div>
+          <button
+            onClick={isAuthenticated ? onSignOut : onOpenAuth}
+            className="mt-3 w-full rounded-lg border border-[#318ba2]/50 px-3 py-2 text-sm font-medium text-[#2a7a8f] hover:bg-[#318ba2]/10 transition-colors"
+          >
+            {isAuthenticated ? 'Sign out' : 'Sign in'}
           </button>
         </div>
 

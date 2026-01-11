@@ -1,13 +1,16 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { PromptForm } from './components/PromptForm';
 import { ImageGrid } from './components/ImageGrid';
 import { FullScreenView } from './components/FullScreenView';
 import { LoadingState } from './components/LoadingState';
 import { PromptHistoryModal } from './components/PromptHistoryModal';
+import { AuthModal } from './components/AuthModal';
 import { generateWallpapers } from './services/geminiService';
 import { GeneratedImage, AspectRatio } from './types';
 import { Icon } from './components/Icon';
 import { Background3D } from './components/Background3D';
+import { supabase } from './services/supabaseClient';
+import type { User } from '@supabase/supabase-js';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -23,6 +26,24 @@ const getInitialTheme = (): ThemeMode => {
   return 'light';
 };
 
+const loadLocalHistory = (): string[] => {
+  try {
+    const saved = localStorage.getItem('prompt_history');
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.warn("Failed to load history", e);
+  }
+  return [];
+};
+
+const saveLocalHistory = (items: string[]) => {
+  try {
+    localStorage.setItem('prompt_history', JSON.stringify(items));
+  } catch (e) {
+    console.warn("Failed to save prompt history", e);
+  }
+};
+
 const App: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('9:16');
@@ -31,6 +52,9 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const migratedUserIdRef = useRef<string | null>(null);
   
   // Sidebar & History State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -44,12 +68,7 @@ const App: React.FC = () => {
     }
 
     // Load history
-    try {
-      const saved = localStorage.getItem('prompt_history');
-      if (saved) setHistory(JSON.parse(saved));
-    } catch (e) {
-      console.warn("Failed to load history", e);
-    }
+    setHistory(loadLocalHistory());
   }, []);
 
   useEffect(() => {
@@ -66,6 +85,115 @@ const App: React.FC = () => {
     }
   }, [theme]);
 
+  const fetchHistoryFromDb = useCallback(async (currentUser: User) => {
+    const { data, error: dbError } = await supabase
+      .from('prompt_history')
+      .select('prompt, created_at')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (dbError) {
+      console.warn('Failed to load history from database', dbError);
+      return;
+    }
+
+    const prompts = (data || []).map((row) => row.prompt).filter(Boolean);
+    setHistory(prompts);
+  }, []);
+
+  const migrateLocalHistory = useCallback(async (currentUser: User) => {
+    const localHistory = loadLocalHistory();
+    if (localHistory.length === 0) return;
+
+    const now = Date.now();
+    const payload = localHistory.map((prompt, index) => ({
+      user_id: currentUser.id,
+      prompt,
+      created_at: new Date(now - index * 1000).toISOString(),
+    }));
+
+    const { error: dbError } = await supabase
+      .from('prompt_history')
+      .upsert(payload, { onConflict: 'user_id,prompt' });
+
+    if (dbError) {
+      console.warn('Failed to migrate history to database', dbError);
+      return;
+    }
+
+    localStorage.removeItem('prompt_history');
+  }, []);
+
+  const savePromptToDb = useCallback(async (currentUser: User, promptText: string) => {
+    const { error: dbError } = await supabase
+      .from('prompt_history')
+      .upsert(
+        {
+          user_id: currentUser.id,
+          prompt: promptText,
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,prompt' }
+      );
+
+    if (dbError) {
+      console.warn('Failed to save prompt history', dbError);
+    }
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      if (!isMounted) return;
+      if (sessionError) {
+        console.warn('Failed to get auth session', sessionError);
+      }
+      setUser(data.session?.user ?? null);
+    });
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      isMounted = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setHistory(loadLocalHistory());
+      return;
+    }
+
+    const hydrateHistory = async () => {
+      if (migratedUserIdRef.current !== user.id) {
+        await migrateLocalHistory(user);
+        migratedUserIdRef.current = user.id;
+      }
+      await fetchHistoryFromDb(user);
+    };
+
+    void hydrateHistory();
+  }, [user, fetchHistoryFromDb, migrateLocalHistory]);
+
+  const updateHistory = useCallback((currentPrompt: string) => {
+    setHistory((prev) => {
+      const nextHistory = [currentPrompt, ...prev.filter((p) => p !== currentPrompt)].slice(0, 20);
+      if (!user) {
+        saveLocalHistory(nextHistory);
+      }
+      return nextHistory;
+    });
+
+    if (user) {
+      void savePromptToDb(user, currentPrompt);
+    }
+  }, [user, savePromptToDb]);
+
   const handleGenerate = useCallback(async (currentPrompt: string, currentAspectRatio: AspectRatio) => {
     if (!currentPrompt || isLoading) return;
 
@@ -73,14 +201,7 @@ const App: React.FC = () => {
     setError(null);
     setImages([]); 
     
-    // Save to history
-    try {
-      const newHistory = [currentPrompt, ...history.filter((p: string) => p !== currentPrompt)].slice(0, 20);
-      setHistory(newHistory);
-      localStorage.setItem('prompt_history', JSON.stringify(newHistory));
-    } catch (e) {
-      console.warn("Failed to save prompt history", e);
-    }
+    updateHistory(currentPrompt);
 
     try {
       const generatedImages = await generateWallpapers(currentPrompt, currentAspectRatio);
@@ -91,7 +212,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, history]);
+  }, [isLoading, updateHistory]);
 
   const handleRemix = useCallback(() => {
     if (selectedImage) {
@@ -119,14 +240,38 @@ const App: React.FC = () => {
     if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
 
-  const clearHistory = () => {
+  const clearHistory = useCallback(() => {
     setHistory([]);
-    localStorage.removeItem('prompt_history');
-  };
+    if (user) {
+      void supabase
+        .from('prompt_history')
+        .delete()
+        .eq('user_id', user.id)
+        .then(({ error: dbError }) => {
+          if (dbError) {
+            console.warn('Failed to clear prompt history', dbError);
+          }
+        });
+    } else {
+      localStorage.removeItem('prompt_history');
+    }
+  }, [user]);
 
   const toggleTheme = () => {
     setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
   };
+
+  const openAuthModal = () => {
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+  };
+
+  const handleSignOut = useCallback(() => {
+    void supabase.auth.signOut();
+  }, []);
 
   const InitialState = () => (
     <div className="flex flex-col items-center justify-center text-center text-slate-500 dark:text-gray-400 p-8 max-w-2xl mx-auto mt-20">
@@ -155,6 +300,15 @@ const App: React.FC = () => {
         onClearHistory={clearHistory}
         isDark={theme === 'dark'}
         onToggleTheme={toggleTheme}
+        userEmail={user?.email}
+        isAuthenticated={Boolean(user)}
+        onOpenAuth={openAuthModal}
+        onSignOut={handleSignOut}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
       />
 
       {/* Main Content Wrapper */}
