@@ -48,7 +48,7 @@ export const FullScreenView: React.FC<FullScreenViewProps> = ({ image, onClose, 
           </a>
           <button
             onClick={onRemix}
-            className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors shadow-lg"
+            className="flex items-center gap-2 px-6 py-3 bg-[#318ba2] text-white font-semibold rounded-lg hover:bg-[#2a7a8f] transition-colors shadow-lg"
           >
             <Icon icon="remix" className="w-5 h-5" />
             <span>Remix</span>

@@ -5,154 +5,170 @@ export const Background3D: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    // --- Scene Setup ---
     const scene = new THREE.Scene();
-    // Deep amethyst/dark cavern background color
-    const bgColor = new THREE.Color('#150520'); 
+    const bgColor = new THREE.Color('#071a22');
     scene.background = bgColor;
-    // Purple fog for depth
-    scene.fog = new THREE.FogExp2(bgColor.getHex(), 0.025);
+    scene.fog = new THREE.FogExp2(bgColor.getHex(), 0.03);
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 2, 20);
+    const camera = new THREE.PerspectiveCamera(
+      55,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      300
+    );
+    camera.position.set(0, 10, 28);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-    
-    const container = containerRef.current;
+    renderer.toneMappingExposure = 1.1;
     container.appendChild(renderer.domElement);
 
-    // --- Lighting ---
-    // Deep purple ambient light
-    const ambientLight = new THREE.AmbientLight('#2d1b4e', 1.2); 
-    scene.add(ambientLight);
+    // Lights
+    const ambient = new THREE.AmbientLight('#7ac6d6', 0.45);
+    scene.add(ambient);
 
-    // Soft lavender main light
-    const pointLight = new THREE.PointLight('#e6e6fa', 1.5, 50); 
-    pointLight.position.set(0, 10, 5);
-    scene.add(pointLight);
+    const sunLight = new THREE.DirectionalLight('#318ba2', 1.35);
+    sunLight.position.set(-10, 20, 10);
+    scene.add(sunLight);
 
-    // Subtle cool accent light (Silver/Cyan tint)
-    const accentLight = new THREE.PointLight('#c0c0c0', 0.8, 40);
-    accentLight.position.set(15, 5, -10);
-    scene.add(accentLight);
+    const coolLight = new THREE.PointLight('#9fe6f5', 0.6, 80);
+    coolLight.position.set(12, 8, -15);
+    scene.add(coolLight);
 
-    // --- Materials ---
-    // Amethyst Crystal Material
-    const crystalMaterial = new THREE.MeshPhysicalMaterial({
-      color: '#9966cc', // Amethyst purple
-      emissive: '#4b0082', // Indigo glow
-      emissiveIntensity: 0.5,
+    // Sun disc + glow
+    const sunDisc = new THREE.Mesh(
+      new THREE.CircleGeometry(4.2, 64),
+      new THREE.MeshBasicMaterial({ color: '#7ed3e4' })
+    );
+    sunDisc.position.set(-12, 12, -30);
+    scene.add(sunDisc);
+
+    const sunGlow = new THREE.Mesh(
+      new THREE.CircleGeometry(7.6, 64),
+      new THREE.MeshBasicMaterial({
+        color: '#7ed3e4',
+        transparent: true,
+        opacity: 0.25,
+      })
+    );
+    sunGlow.position.copy(sunDisc.position);
+    scene.add(sunGlow);
+
+    // Dunes
+    const duneGeometry = new THREE.PlaneGeometry(220, 220, 120, 120);
+    duneGeometry.rotateX(-Math.PI / 2);
+    const duneMaterial = new THREE.MeshStandardMaterial({
+      color: '#294b57',
+      roughness: 0.9,
+      metalness: 0.05,
+      flatShading: true,
+    });
+    const dunes = new THREE.Mesh(duneGeometry, duneMaterial);
+    dunes.position.y = -2.5;
+    scene.add(dunes);
+
+    const position = duneGeometry.attributes.position as THREE.BufferAttribute;
+    const basePositions = (position.array as Float32Array).slice();
+
+    // Floating rings
+    const ringMaterial = new THREE.MeshStandardMaterial({
+      color: '#318ba2',
+      emissive: '#145166',
+      emissiveIntensity: 0.55,
+      roughness: 0.2,
       metalness: 0.6,
-      roughness: 0.1, // Shiny
-      transmission: 0.3, // Semi-transparent
-      thickness: 1.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
+      transparent: true,
+      opacity: 0.7,
     });
 
-    // Dark Reflective Water Material
-    const waterMaterial = new THREE.MeshStandardMaterial({
-      color: '#0a0410', // Very dark purple/black
-      roughness: 0.02,
-      metalness: 0.95,
+    const ringOne = new THREE.Mesh(
+      new THREE.TorusGeometry(6.2, 0.18, 16, 120),
+      ringMaterial
+    );
+    ringOne.position.set(10, 5, -12);
+    ringOne.rotation.set(Math.PI / 3, 0.2, Math.PI / 6);
+    scene.add(ringOne);
+
+    const ringTwo = new THREE.Mesh(
+      new THREE.TorusGeometry(4.6, 0.14, 16, 120),
+      ringMaterial
+    );
+    ringTwo.position.set(6, 7.5, -6);
+    ringTwo.rotation.set(Math.PI / 2.6, -0.3, Math.PI / 3);
+    scene.add(ringTwo);
+
+    const ringThree = new THREE.Mesh(
+      new THREE.TorusGeometry(8.8, 0.2, 16, 140),
+      ringMaterial
+    );
+    ringThree.position.set(-4, 4, -18);
+    ringThree.rotation.set(Math.PI / 2.2, 0.1, -Math.PI / 5);
+    scene.add(ringThree);
+
+    // Dust particles
+    const dustCount = 900;
+    const dustGeometry = new THREE.BufferGeometry();
+    const dustPositions = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount; i += 1) {
+      dustPositions[i * 3] = (Math.random() - 0.5) * 180;
+      dustPositions[i * 3 + 1] = Math.random() * 18 + 2;
+      dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 120;
+    }
+    dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+    const dustMaterial = new THREE.PointsMaterial({
+      color: '#a6dbe6',
+      size: 0.45,
+      transparent: true,
+      opacity: 0.4,
     });
+    const dust = new THREE.Points(dustGeometry, dustMaterial);
+    scene.add(dust);
 
-    // --- Geometry ---
-    // Geodesic-ish shapes (Icosahedron)
-    const crystalGeo = new THREE.IcosahedronGeometry(1, 0);
-    const count = 300;
-    
-    // Ceiling/Wall Crystals
-    const crystals = new THREE.InstancedMesh(crystalGeo, crystalMaterial, count);
-    const dummy = new THREE.Object3D();
-    const positions: {x: number, y: number, z: number}[] = [];
-
-    for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * 90;
-      const z = (Math.random() - 0.5) * 70 - 15;
-      // Arching ceiling structure
-      const y = 12 + Math.random() * 8 - (Math.abs(x) * 0.15) - (Math.abs(z) * 0.1); 
-
-      dummy.position.set(x, y, z);
-      dummy.rotation.set(
-        Math.random() * Math.PI, 
-        Math.random() * Math.PI, 
-        Math.random() * Math.PI
-      );
-      
-      // Elongated crystal shards
-      const s = Math.random() * 0.6 + 0.4;
-      dummy.scale.set(s, s * (1 + Math.random() * 2.5), s);
-      
-      dummy.updateMatrix();
-      crystals.setMatrixAt(i, dummy.matrix);
-      positions.push({x, y, z});
-    }
-    scene.add(crystals);
-
-    // Reflected Crystals (Under water)
-    const reflectedCrystals = new THREE.InstancedMesh(crystalGeo, crystalMaterial.clone(), count);
-    // Slightly dimmer and more opaque for reflection illusion
-    (reflectedCrystals.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 0.2;
-    
-    const waterLevel = -2;
-
-    for (let i = 0; i < count; i++) {
-      const {x, y, z} = positions[i];
-      // Reflection math: newY = waterLevel - (y - waterLevel)
-      const refY = waterLevel - (y - waterLevel);
-
-      dummy.position.set(x, refY, z);
-      dummy.rotation.set(
-        Math.random() * Math.PI, 
-        Math.random() * Math.PI, 
-        Math.random() * Math.PI
-      );
-      const s = Math.random() * 0.6 + 0.4;
-      dummy.scale.set(s, s * (1 + Math.random() * 2.5), s);
-
-      dummy.updateMatrix();
-      reflectedCrystals.setMatrixAt(i, dummy.matrix);
-    }
-    scene.add(reflectedCrystals);
-
-    // Water Plane
-    const waterPlane = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), waterMaterial);
-    waterPlane.rotation.x = -Math.PI / 2;
-    waterPlane.position.y = waterLevel;
-    scene.add(waterPlane);
-
-    // --- Animation Loop ---
     let time = 0;
-    
+    let frameCount = 0;
+
     const animate = () => {
-      requestAnimationFrame(animate);
-      time += 0.003; // Slow, serene speed
+      time += 0.006;
+      frameCount += 1;
 
-      // Pulse light (Oasis breathing)
-      pointLight.intensity = 1.5 + Math.sin(time * 2) * 0.4;
-      (crystals.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 0.5 + Math.sin(time * 1.5) * 0.3;
+      for (let i = 0; i < position.count; i += 1) {
+        const ix = i * 3;
+        const x = basePositions[ix];
+        const z = basePositions[ix + 2];
+        const ridge = Math.sin(x * 0.06 + time * 0.9) * 1.15;
+        const trough = Math.cos(z * 0.04 + time * 0.7) * 0.95;
+        position.array[ix + 1] = ridge + trough;
+      }
+      position.needsUpdate = true;
+      if (frameCount % 2 === 0) {
+        duneGeometry.computeVertexNormals();
+      }
 
-      // Camera bob
-      camera.position.y = 2 + Math.sin(time * 0.5) * 0.3;
-      camera.rotation.x = Math.sin(time * 0.25) * 0.02;
+      ringOne.rotation.z += 0.0015;
+      ringTwo.rotation.y -= 0.0012;
+      ringThree.rotation.x += 0.001;
 
-      // Gentle crystal float
-      crystals.rotation.y = Math.sin(time * 0.05) * 0.02;
-      reflectedCrystals.rotation.y = Math.sin(time * 0.05) * 0.02;
+      dust.rotation.y += 0.0008;
+      dust.position.y = 1.5 + Math.sin(time * 0.6) * 0.25;
+
+      sunDisc.lookAt(camera.position);
+      sunGlow.lookAt(camera.position);
+
+      camera.position.y = 9.6 + Math.sin(time * 0.4) * 0.35;
+      camera.position.x = Math.sin(time * 0.2) * 0.3;
+      camera.lookAt(0, 0, -10);
 
       renderer.render(scene, camera);
+      requestAnimationFrame(animate);
     };
 
     animate();
 
-    // --- Resize ---
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -162,12 +178,35 @@ export const Background3D: React.FC = () => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (container && renderer.domElement) {
-        container.removeChild(renderer.domElement);
+      if (renderer.domElement.parentElement) {
+        renderer.domElement.parentElement.removeChild(renderer.domElement);
       }
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          if (Array.isArray(object.material)) {
+            object.material.forEach((material) => material.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+        if (object instanceof THREE.Points) {
+          object.geometry.dispose();
+          if (Array.isArray(object.material)) {
+            object.material.forEach((material) => material.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      });
       renderer.dispose();
     };
   }, []);
 
-  return <div ref={containerRef} className="fixed inset-0 w-full h-full z-0 pointer-events-none" />;
+  return (
+    <div
+      ref={containerRef}
+      className="fixed inset-0 w-full h-full z-0 pointer-events-none"
+    />
+  );
 };

@@ -98,7 +98,7 @@ const App: React.FC = () => {
   const InitialState = () => (
     <div className="flex flex-col items-center justify-center text-center text-gray-400 p-8 max-w-2xl mx-auto mt-20">
       <div className="w-16 h-16 bg-gray-800/50 backdrop-blur-md rounded-full flex items-center justify-center mb-6 border border-gray-700">
-          <Icon icon="sparkles" className="w-8 h-8 text-purple-400" />
+          <Icon icon="sparkles" className="w-8 h-8 text-[#318ba2]" />
       </div>
       <h2 className="text-2xl font-bold text-white mb-2 text-shadow-sm">VibeWallpapers AI</h2>
       <p className="text-gray-300 max-w-md drop-shadow-md">Describe a scene, feeling, or aesthetic. We'll craft four unique wallpapers for you.</p>

@@ -13,7 +13,7 @@ export const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick }) =>
       {images.map((image, index) => (
         <div
           key={index}
-          className="aspect-[9/16] bg-gray-800 rounded-lg overflow-hidden cursor-pointer group relative transform hover:-translate-y-1 transition-transform duration-300 shadow-lg hover:shadow-purple-500/20"
+          className="aspect-[9/16] bg-gray-800 rounded-lg overflow-hidden cursor-pointer group relative transform hover:-translate-y-1 transition-transform duration-300 shadow-lg hover:shadow-[0_12px_30px_rgba(49,139,162,0.25)]"
           onClick={() => onImageClick(image)}
         >
           <img
