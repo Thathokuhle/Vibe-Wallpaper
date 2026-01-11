@@ -9,6 +9,8 @@ interface PromptHistoryModalProps {
   onSelectPrompt: (prompt: string) => void;
   onNewChat: () => void;
   onClearHistory: () => void;
+  isDark: boolean;
+  onToggleTheme: () => void;
 }
 
 export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({ 
@@ -17,7 +19,9 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
   history, 
   onSelectPrompt, 
   onNewChat,
-  onClearHistory
+  onClearHistory,
+  isDark,
+  onToggleTheme
 }) => {
 
   return (
@@ -33,7 +37,7 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
 
       {/* Sidebar Panel */}
       <div 
-        className={`fixed top-0 bottom-0 left-0 z-50 w-[260px] bg-[#171717] text-[#ECECEC] flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-[260px] bg-white dark:bg-[#171717] text-slate-800 dark:text-[#ECECEC] flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -42,7 +46,7 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
         <div className="p-3 flex items-center gap-2">
           <button
              onClick={onNewChat}
-             className="flex-1 flex items-center gap-2 px-3 py-3 border border-[#318ba2]/60 hover:bg-[#318ba2]/15 rounded-md transition-colors duration-200 text-sm text-[#e6f7fb]"
+             className="flex-1 flex items-center gap-2 px-3 py-3 border border-[#318ba2]/60 hover:bg-[#318ba2]/15 rounded-md transition-colors duration-200 text-sm text-slate-700 dark:text-[#e6f7fb]"
            >
              <Icon icon="plus" className="w-4 h-4" />
              <span>New creation</span>
@@ -50,7 +54,7 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
            
            <button 
              onClick={onClose}
-             className="p-3 border border-transparent hover:bg-[#2A2B32] text-[#6fbdd0] hover:text-[#e6f7fb] rounded-md transition-colors"
+             className="p-3 border border-transparent hover:bg-slate-200/70 dark:hover:bg-[#2A2B32] text-[#4a99ae] dark:text-[#6fbdd0] hover:text-[#1a2c32] dark:hover:text-[#e6f7fb] rounded-md transition-colors"
              aria-label="Close sidebar"
              title="Close Sidebar"
            >
@@ -64,7 +68,7 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
               <h3 className="px-3 text-xs font-medium text-[#4faec4] mb-2">Recent</h3>
               <div className="flex flex-col gap-1">
                 {history.length === 0 ? (
-                  <div className="px-3 py-4 text-sm text-gray-500 italic">
+                  <div className="px-3 py-4 text-sm text-slate-500 dark:text-gray-500 italic">
                     No recent history
                   </div>
                 ) : (
@@ -72,11 +76,11 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
                     <button
                       key={index}
                       onClick={() => onSelectPrompt(item)}
-                      className="group flex items-center gap-3 w-full px-3 py-3 text-sm rounded-lg hover:bg-[#2A2B32] transition-colors duration-200 overflow-hidden text-left relative"
+                      className="group flex items-center gap-3 w-full px-3 py-3 text-sm rounded-lg hover:bg-slate-100 dark:hover:bg-[#2A2B32] transition-colors duration-200 overflow-hidden text-left relative"
                     >
-                      <Icon icon="message" className="w-4 h-4 text-[#5fb3c6] group-hover:text-[#c9f0f8] flex-shrink-0" />
-                      <span className="truncate flex-1 text-gray-100 opacity-90 group-hover:opacity-100">{item}</span>
-                      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#171717] to-transparent group-hover:from-[#2A2B32]"></div>
+                      <Icon icon="message" className="w-4 h-4 text-[#5fb3c6] group-hover:text-[#2c6e7f] dark:group-hover:text-[#c9f0f8] flex-shrink-0" />
+                      <span className="truncate flex-1 text-slate-700 dark:text-gray-100 opacity-90 group-hover:opacity-100">{item}</span>
+                      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-[#171717] to-transparent group-hover:from-slate-100 dark:group-hover:from-[#2A2B32]"></div>
                     </button>
                   ))
                 )}
@@ -86,7 +90,7 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
            {history.length > 0 && (
               <button
                 onClick={onClearHistory}
-                className="mt-4 flex items-center gap-3 w-full px-3 py-3 text-sm text-[#6fbdd0] hover:text-[#d9f6fb] hover:bg-[#2A2B32] rounded-lg transition-colors"
+                className="mt-4 flex items-center gap-3 w-full px-3 py-3 text-sm text-[#4a99ae] dark:text-[#6fbdd0] hover:text-[#1a2c32] dark:hover:text-[#d9f6fb] hover:bg-slate-100 dark:hover:bg-[#2A2B32] rounded-lg transition-colors"
               >
                 <Icon icon="trash" className="w-4 h-4" />
                 <span>Clear history</span>
@@ -95,15 +99,24 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
         </div>
 
         {/* Footer: User Profile */}
-        <div className="p-3 border-t border-white/10">
-          <button className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-[#2A2B32] transition-colors duration-200 text-left">
+        <div className="p-3 border-t border-slate-200/70 dark:border-white/10">
+          <button className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-[#2A2B32] transition-colors duration-200 text-left">
             <div className="w-8 h-8 rounded-full bg-[#318ba2] flex items-center justify-center text-white text-xs font-bold">
                <Icon icon="user" className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-               <div className="text-sm font-medium text-white truncate">Guest User</div>
-               <div className="text-xs text-gray-400 truncate">Sign in to save</div>
+               <div className="text-sm font-medium text-slate-800 dark:text-white truncate">Guest User</div>
+               <div className="text-xs text-slate-500 dark:text-gray-400 truncate">Sign in to save</div>
             </div>
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              aria-pressed={isDark}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-full border border-[#318ba2]/40 text-[#318ba2] hover:bg-[#318ba2]/10 transition-colors"
+              title="Toggle theme"
+            >
+              <Icon icon={isDark ? 'sun' : 'moon'} className="w-4 h-4" />
+            </button>
           </button>
         </div>
 

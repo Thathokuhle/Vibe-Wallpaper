@@ -20,6 +20,8 @@ export const Icon: React.FC<IconProps> = ({ icon, className }) => {
     sidebar: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />,
     plus: <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />,
     user: <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />,
+    sun: <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1.5M12 19.5V21m9-9h-1.5M4.5 12H3m15.364-6.364-1.06 1.06M7.697 16.303l-1.06 1.06m10.606 0-1.06-1.06M7.697 7.697l-1.06-1.06M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />,
+    moon: <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7.5 7.5 0 0021 12.79z" />,
   };
 
   return (

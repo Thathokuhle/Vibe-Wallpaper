@@ -27,7 +27,7 @@ export const LoadingState: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center text-center text-gray-400 p-8 h-full animate-fade-in">
+    <div className="flex flex-col items-center justify-center text-center text-slate-500 dark:text-gray-400 p-8 h-full animate-fade-in">
       <div className="relative w-24 h-24 mb-6">
         <div className="absolute inset-0 border-4 border-[#318ba2]/30 rounded-full"></div>
         <div className="absolute inset-0 border-4 border-t-[#318ba2] border-l-[#318ba2] border-b-transparent border-r-transparent rounded-full animate-spin"></div>
@@ -35,7 +35,7 @@ export const LoadingState: React.FC = () => {
             <Icon icon="sparkles" className="w-10 h-10 text-[#318ba2] animate-pulse" />
         </div>
       </div>
-      <p className="text-lg text-white font-semibold transition-opacity duration-500">{message}</p>
+      <p className="text-lg text-slate-900 dark:text-white font-semibold transition-opacity duration-500">{message}</p>
     </div>
   );
 };

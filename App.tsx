@@ -9,6 +9,20 @@ import { GeneratedImage, AspectRatio } from './types';
 import { Icon } from './components/Icon';
 import { Background3D } from './components/Background3D';
 
+type ThemeMode = 'light' | 'dark';
+
+const getInitialTheme = (): ThemeMode => {
+  if (typeof window === 'undefined') return 'dark';
+  try {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+  } catch (e) {
+    console.warn("Failed to load theme preference", e);
+  }
+  return 'light';
+};
+
 const App: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('9:16');
@@ -16,6 +30,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
+  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
   
   // Sidebar & History State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -36,6 +51,20 @@ const App: React.FC = () => {
       console.warn("Failed to load history", e);
     }
   }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    try {
+      localStorage.setItem('theme', theme);
+    } catch (e) {
+      console.warn("Failed to save theme preference", e);
+    }
+  }, [theme]);
 
   const handleGenerate = useCallback(async (currentPrompt: string, currentAspectRatio: AspectRatio) => {
     if (!currentPrompt || isLoading) return;
@@ -95,20 +124,24 @@ const App: React.FC = () => {
     localStorage.removeItem('prompt_history');
   };
 
+  const toggleTheme = () => {
+    setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
+  };
+
   const InitialState = () => (
-    <div className="flex flex-col items-center justify-center text-center text-gray-400 p-8 max-w-2xl mx-auto mt-20">
-      <div className="w-16 h-16 bg-gray-800/50 backdrop-blur-md rounded-full flex items-center justify-center mb-6 border border-[#318ba2]/40">
+    <div className="flex flex-col items-center justify-center text-center text-slate-500 dark:text-gray-400 p-8 max-w-2xl mx-auto mt-20">
+      <div className="w-16 h-16 bg-white/70 dark:bg-gray-800/50 backdrop-blur-md rounded-full flex items-center justify-center mb-6 border border-[#318ba2]/40">
           <Icon icon="sparkles" className="w-8 h-8 text-[#318ba2]" />
       </div>
-      <h2 className="text-2xl font-bold text-white mb-2 text-shadow-sm">VibeWallpapers AI</h2>
-      <p className="text-gray-300 max-w-md drop-shadow-md">Describe a scene, feeling, or aesthetic. We'll craft four unique wallpapers for you.</p>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 text-shadow-sm">VibeWallpapers AI</h2>
+      <p className="text-slate-600 dark:text-gray-300 max-w-md drop-shadow-md">Describe a scene, feeling, or aesthetic. We'll craft four unique wallpapers for you.</p>
     </div>
   );
 
   return (
-    <div className="flex h-[100dvh] bg-transparent text-gray-100 overflow-hidden relative">
+    <div className="flex h-[100dvh] bg-transparent text-slate-900 dark:text-gray-100 overflow-hidden relative">
       
-      <Background3D />
+      <Background3D theme={theme} />
 
       <PromptHistoryModal
         isOpen={isSidebarOpen}
@@ -120,6 +153,8 @@ const App: React.FC = () => {
         }}
         onNewChat={startNewChat}
         onClearHistory={clearHistory}
+        isDark={theme === 'dark'}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Content Wrapper */}
@@ -132,7 +167,7 @@ const App: React.FC = () => {
               {!isSidebarOpen && (
                 <button
                   onClick={() => setIsSidebarOpen(true)}
-                  className="p-2 text-gray-400 hover:text-white rounded-md hover:bg-gray-800/50 transition-colors backdrop-blur-sm"
+                  className="p-2 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white rounded-md hover:bg-slate-200/70 dark:hover:bg-gray-800/50 transition-colors backdrop-blur-sm"
                   title="Open Sidebar"
                 >
                   <Icon icon="sidebar" className="w-6 h-6" />
@@ -149,10 +184,10 @@ const App: React.FC = () => {
             {isLoading ? (
             <LoadingState />
             ) : error ? (
-            <div className="flex flex-col items-center justify-center text-center text-red-400 p-8 mt-20 animate-fade-in bg-black/30 backdrop-blur-sm rounded-xl max-w-lg mx-auto">
+            <div className="flex flex-col items-center justify-center text-center text-red-500 dark:text-red-400 p-8 mt-20 animate-fade-in bg-white/70 dark:bg-black/30 backdrop-blur-sm rounded-xl max-w-lg mx-auto">
                 <Icon icon="error" className="w-12 h-12 mb-4 opacity-80" />
-                <h2 className="text-xl font-semibold text-red-300 mb-2">Generation Failed</h2>
-                <p className="text-sm opacity-80">{error}</p>
+                <h2 className="text-xl font-semibold text-red-600 dark:text-red-300 mb-2">Generation Failed</h2>
+                <p className="text-sm opacity-80 text-slate-600 dark:text-gray-300">{error}</p>
             </div>
             ) : images.length > 0 ? (
             <ImageGrid images={images} onImageClick={handleSelectImage} />

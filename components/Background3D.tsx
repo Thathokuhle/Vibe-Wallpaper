@@ -1,17 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-export const Background3D: React.FC = () => {
+interface Background3DProps {
+  theme?: 'light' | 'dark';
+}
+
+export const Background3D: React.FC<Background3DProps> = ({ theme = 'dark' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    const isDark = theme === 'dark';
     const scene = new THREE.Scene();
-    const bgColor = new THREE.Color('#04131c');
+    const bgColor = new THREE.Color(isDark ? '#04131c' : '#d2eef4');
     scene.background = bgColor;
-    scene.fog = new THREE.FogExp2(bgColor.getHex(), 0.028);
+    scene.fog = new THREE.FogExp2(bgColor.getHex(), isDark ? 0.028 : 0.018);
 
     const camera = new THREE.PerspectiveCamera(
       55,
@@ -29,21 +34,21 @@ export const Background3D: React.FC = () => {
     container.appendChild(renderer.domElement);
 
     // Lights
-    const ambient = new THREE.AmbientLight('#4d9db2', 0.35);
+    const ambient = new THREE.AmbientLight(isDark ? '#4d9db2' : '#bfe9f3', isDark ? 0.35 : 0.55);
     scene.add(ambient);
 
-    const sunLight = new THREE.DirectionalLight('#3aa9c4', 1.55);
+    const sunLight = new THREE.DirectionalLight(isDark ? '#3aa9c4' : '#2f8ea6', isDark ? 1.55 : 1.1);
     sunLight.position.set(-10, 20, 10);
     scene.add(sunLight);
 
-    const coolLight = new THREE.PointLight('#c6f4ff', 0.75, 80);
+    const coolLight = new THREE.PointLight(isDark ? '#c6f4ff' : '#ffffff', isDark ? 0.75 : 0.45, 80);
     coolLight.position.set(12, 8, -15);
     scene.add(coolLight);
 
     // Sun disc + glow
     const sunDisc = new THREE.Mesh(
       new THREE.CircleGeometry(4.2, 64),
-      new THREE.MeshBasicMaterial({ color: '#b9f0ff' })
+      new THREE.MeshBasicMaterial({ color: isDark ? '#b9f0ff' : '#4fb3cc' })
     );
     sunDisc.position.set(-12, 12, -30);
     scene.add(sunDisc);
@@ -51,9 +56,9 @@ export const Background3D: React.FC = () => {
     const sunGlow = new THREE.Mesh(
       new THREE.CircleGeometry(7.6, 64),
       new THREE.MeshBasicMaterial({
-        color: '#7edfee',
+        color: isDark ? '#7edfee' : '#318ba2',
         transparent: true,
-        opacity: 0.35,
+        opacity: isDark ? 0.35 : 0.22,
       })
     );
     sunGlow.position.copy(sunDisc.position);
@@ -63,7 +68,7 @@ export const Background3D: React.FC = () => {
     const duneGeometry = new THREE.PlaneGeometry(220, 220, 120, 120);
     duneGeometry.rotateX(-Math.PI / 2);
     const duneMaterial = new THREE.MeshStandardMaterial({
-      color: '#17333c',
+      color: isDark ? '#17333c' : '#b9d9e1',
       roughness: 0.9,
       metalness: 0.05,
       flatShading: true,
@@ -77,13 +82,13 @@ export const Background3D: React.FC = () => {
 
     // Floating rings
     const ringMaterial = new THREE.MeshStandardMaterial({
-      color: '#39b5cf',
-      emissive: '#1b6e83',
-      emissiveIntensity: 0.8,
+      color: isDark ? '#39b5cf' : '#318ba2',
+      emissive: isDark ? '#1b6e83' : '#1b5d6f',
+      emissiveIntensity: isDark ? 0.8 : 0.65,
       roughness: 0.18,
       metalness: 0.7,
       transparent: true,
-      opacity: 0.75,
+      opacity: isDark ? 0.75 : 0.68,
     });
 
     const ringOne = new THREE.Mesh(
@@ -121,10 +126,10 @@ export const Background3D: React.FC = () => {
     }
     dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     const dustMaterial = new THREE.PointsMaterial({
-      color: '#d3f6ff',
+      color: isDark ? '#d3f6ff' : '#5fb7ca',
       size: 0.45,
       transparent: true,
-      opacity: 0.5,
+      opacity: isDark ? 0.5 : 0.35,
     });
     const dust = new THREE.Points(dustGeometry, dustMaterial);
     scene.add(dust);
@@ -201,7 +206,7 @@ export const Background3D: React.FC = () => {
       });
       renderer.dispose();
     };
-  }, []);
+  }, [theme]);
 
   return (
     <div
